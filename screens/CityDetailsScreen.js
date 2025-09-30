@@ -99,12 +99,20 @@ const CityDetailsScreen = ({ route, navigation }) => {
                 <Text style={styles.headerText}>Chào, {username || 'Guest'}</Text>
                 <View style={styles.headerActions}>
                     <Text style={styles.locationText}>{city}, Việt Nam</Text>
-                    <TouchableOpacity
-                        style={styles.orderIcon}
-                        onPress={() => navigation.navigate('BookingManagementScreen')}
-                    >
-                        <Icon name="shopping-cart" size={24} color="#007AFF" />
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row' }}>
+                        <TouchableOpacity
+                            style={[styles.actionIcon, { marginRight: 8 }]}
+                            onPress={() => navigation.navigate('AIChat', { city })}
+                        >
+                            <Icon name="smart-toy" size={24} color="#34C759" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.actionIcon}
+                            onPress={() => navigation.navigate('BookingManagementScreen')}
+                        >
+                            <Icon name="shopping-cart" size={24} color="#007AFF" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
                 <Text style={styles.dateText}>Ngày: {currentDate}</Text>
             </View>
@@ -173,7 +181,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
     },
-    orderIcon: {
+    actionIcon: {
         padding: 5,
         backgroundColor: '#f0f0f0',
         borderRadius: 5,

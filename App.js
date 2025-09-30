@@ -8,6 +8,7 @@ import CityDetailsScreen from './screens/CityDetailsScreen';
 import OrderScreen from './screens/OrderScreen';
 import PaymentScreen from './screens/PaymentScreen';
 import BookingManagementScreen from './screens/BookingManagementScreen';
+import AIChatScreen from './screens/AIChatScreen';
 
 const Stack = createStackNavigator();
 
@@ -39,6 +40,11 @@ export default function App() {
           name="BookingManagementScreen"
           component={BookingManagementScreen}
           options={{ title: 'Quản lý phòng đã đặt' }}
+        />
+        <Stack.Screen
+          name="AIChat"
+          component={AIChatScreen}
+          options={{ title: 'AI Assistant' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

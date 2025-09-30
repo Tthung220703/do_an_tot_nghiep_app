@@ -92,6 +92,10 @@ const BookingManagementScreen = () => {
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Quản lý phòng đã đặt</Text>
+            <TouchableOpacity style={styles.aiButton} onPress={() => {
+                // navigation is available via props in stack screens
+                // but this component defined without props; use a workaround by requiring navigation
+            }} />
             {bookings.length === 0 ? (
                 <Text style={styles.noBookingText}>Bạn chưa đặt phòng nào.</Text>
             ) : (
@@ -174,6 +178,9 @@ const styles = StyleSheet.create({
         color: '#888',
         marginTop: 20,
     },
+    aiButton: {
+        display: 'none'
+    }
 });
 
 export default BookingManagementScreen;

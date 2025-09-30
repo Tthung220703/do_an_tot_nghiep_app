@@ -163,9 +163,11 @@ const OrderScreen = ({ route, navigation }) => {
                         />
                     ))}
                 </Picker>
-                <Text style={styles.availableRooms}>
-                    Số phòng trống: {selectedRoom.available}
-                </Text>
+                {selectedRoom && (
+                    <Text style={styles.availableRooms}>
+                        Số phòng trống: {selectedRoom.available}
+                    </Text>
+                )}
             </View>
 
             {/* Order Section */}

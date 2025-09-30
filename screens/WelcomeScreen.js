@@ -85,6 +85,7 @@ const WelcomeScreen = ({ route, navigation }) => {
                         Xác nhận {selectedCity || 'Thành phố'}
                     </Text>
                 </TouchableOpacity>
+
             </View>
         </ImageBackground>
     );
