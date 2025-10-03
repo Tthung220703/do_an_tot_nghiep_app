@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ActivityIndicator, ScrollView, Modal, FlatList } from 'react-native';
-import { firestore } from '../firebase';
+import { firestore } from '../../firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
 const WelcomeScreen = ({ route, navigation }) => {

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, KeyboardAvoidingView, Platform, Image } from 'react-native';
-import { firestore, auth } from '../firebase';
+import { firestore, auth } from '../../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
