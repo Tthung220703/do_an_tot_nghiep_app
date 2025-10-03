@@ -26,6 +26,13 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "scheme": "bookingproject",
+    "extra": {
+      "googleWebClientId": "YOUR_GOOGLE_WEB_CLIENT_ID",
+      "googleIosClientId": "YOUR_GOOGLE_IOS_CLIENT_ID",
+      "googleAndroidClientId": "YOUR_GOOGLE_ANDROID_CLIENT_ID",
+      "facebookAppId": "YOUR_FACEBOOK_APP_ID"
     }
   }
 }

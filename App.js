@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
 import CreateAccountScreen from './screens/CreateAccountScreen';
 import LoginScreen from './screens/LoginScreen';
 import WelcomeScreen from './screens/WelcomeScreen';
@@ -9,32 +9,48 @@ import OrderScreen from './screens/OrderScreen';
 import PaymentScreen from './screens/PaymentScreen';
 import BookingManagementScreen from './screens/BookingManagementScreen';
 import AIChatScreen from './screens/AIChatScreen';
+import { DarkTheme } from './theme';
 
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="LoginScreen">
+    <NavigationContainer theme={{ colors: { background: DarkTheme.colors.background } }}>
+      <Stack.Navigator
+        initialRouteName="LoginScreen"
+        screenOptions={{
+          headerStyle: { backgroundColor: DarkTheme.colors.surface },
+          headerTintColor: DarkTheme.colors.textPrimary,
+          headerShadowVisible: false,
+          headerTitleStyle: { fontWeight: '800' },
+          animationEnabled: true,
+          gestureEnabled: true,
+          animationTypeForReplace: 'push',
+          ...TransitionPresets.SlideFromRightIOS,
+        }}
+      >
         <Stack.Screen
           name="WelcomeScreen"
           component={WelcomeScreen}
-          options={{ title: 'Xin chào' }}
+          options={{
+            headerShown: false,
+            cardStyleInterpolator: ({ current }) => ({
+              cardStyle: { opacity: current.progress },
+            }),
+          }}
         />
         <Stack.Screen
           name="CreateAccountScreen"
           component={CreateAccountScreen}
-          options={{ title: 'Đăng ký' }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="LoginScreen"
           component={LoginScreen}
-          options={{ title: 'Đăng nhập' }}
+          options={{ headerShown: false }}
         />
-        <Stack.Screen name="CityDetailsScreen" component={CityDetailsScreen} options={{
-          title: 'Chi tiết'
-        }} />
-        <Stack.Screen name="Order" component={OrderScreen} options={{ title: 'Thông tin phòng đặt' }} />
+        <Stack.Screen name="CityDetailsScreen" component={CityDetailsScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Order" component={OrderScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Payment" component={PaymentScreen} options={{ title: 'Thanh toán' }} />
         <Stack.Screen
           name="BookingManagementScreen"
