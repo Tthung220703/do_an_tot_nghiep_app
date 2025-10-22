@@ -5,6 +5,8 @@ import CreateAccountScreen from './screens/CreateAccountScreen';
 import LoginScreen from './screens/LoginScreen';
 import WelcomeScreen from './screens/WelcomeScreen';
 import CityDetailsScreen from './screens/CityDetailsScreen';
+import HotelsScreen from './screens/HotelsScreen';
+import HomestaysScreen from './screens/HomestaysScreen';
 import OrderScreen from './screens/OrderScreen';
 import PaymentScreen from './screens/PaymentScreen';
 import BookingManagementScreen from './screens/BookingManagementScreen';
@@ -50,6 +52,8 @@ export default function App() {
           options={{ headerShown: false }}
         />
         <Stack.Screen name="CityDetailsScreen" component={CityDetailsScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="HotelsScreen" component={HotelsScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="HomestaysScreen" component={HomestaysScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Order" component={OrderScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Payment" component={PaymentScreen} options={{ headerShown: false }} />
         <Stack.Screen

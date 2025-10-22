@@ -161,7 +161,13 @@ const CityDetailsScreen = ({ route, navigation }) => {
                 />
 
                 {/* Hotels */}
-                <Text style={cityDetailsStyles.sectionTitle}>Hotels</Text>
+                <TouchableOpacity 
+                    style={cityDetailsStyles.sectionHeader}
+                    onPress={() => navigation.navigate('HotelsScreen', { city })}
+                >
+                    <Text style={cityDetailsStyles.sectionTitle}>Hotels</Text>
+                    <Text style={cityDetailsStyles.sectionSubtitle}>Xem tất cả ({hotels.length})</Text>
+                </TouchableOpacity>
                 {hotels.length > 0 ? (
                     <FlatList
                         data={hasSearched ? filteredHotels : hotels}
@@ -176,7 +182,13 @@ const CityDetailsScreen = ({ route, navigation }) => {
                 )}
 
                 {/* Homestays */}
-                <Text style={cityDetailsStyles.sectionTitle}>Homestays</Text>
+                <TouchableOpacity 
+                    style={cityDetailsStyles.sectionHeader}
+                    onPress={() => navigation.navigate('HomestaysScreen', { city })}
+                >
+                    <Text style={cityDetailsStyles.sectionTitle}>Homestays</Text>
+                    <Text style={cityDetailsStyles.sectionSubtitle}>Xem tất cả ({homestays.length})</Text>
+                </TouchableOpacity>
                 {homestays.length > 0 ? (
                     <FlatList
                         data={hasSearched ? filteredHomestays : homestays}
