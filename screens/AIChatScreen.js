@@ -1,27 +1,35 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, KeyboardAvoidingView, Platform, Image } from 'react-native';
-import { firestore, auth } from '../../firebase';
+import {
+  View, Text, TextInput, TouchableOpacity,
+  FlatList, KeyboardAvoidingView, Platform, Image
+} from 'react-native';
+import { firestore } from '../firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
+import { aiChatScreenStyles } from '../styles/AIChatScreenStyles';
 
-const genAI = new GoogleGenerativeAI('AIzaSyC538fctSehC036Jodw9E76mRqUPshf3BY');
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+const ai = new GoogleGenAI({ apiKey: 'AIzaSyBEP6nNfWUQ4uhdtGzrL_6ivLc3E2WRt6Q' });
 
 const AIChatScreen = ({ route, navigation }) => {
   const selectedCity = route?.params?.city || null;
+  const { city } = route.params || { city: 'Hồ Chí Minh' }; // fallback nếu không có params
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const messagesRef = useRef(null);
   const [hotelsLookup, setHotelsLookup] = useState([]);
 
+  const messagesRef = useRef(null);
+
   useEffect(() => {
-    // greeting cho KHÁCH HÀNG
-    setMessages([{ id: Date.now().toString(), text: '👋 Xin chào! Tôi là AI tư vấn du lịch của bạn. Hãy nói yêu cầu: ngân sách, ngày ở, số người, muốn gần trung tâm/biển, tiện ích (hồ bơi, bữa sáng, chỗ đậu xe...) để tôi gợi ý khách sạn phù hợp.', isBot: true }]);
+    setMessages([{
+      id: Date.now().toString(),
+      text: '👋 Xin chào! Tôi là AI tư vấn du lịch của bạn. Hãy nói yêu cầu (ngân sách, vị trí, số người...) để tôi gợi ý khách sạn phù hợp.',
+      isBot: true
+    }]);
   }, []);
 
   const fetchContextData = async () => {
-    // Dữ liệu dành cho KHÁCH HÀNG: danh sách khách sạn theo thành phố được chọn
     const hotelsQ = selectedCity
       ? query(collection(firestore, 'hotels'), where('city', '==', selectedCity))
       : collection(firestore, 'hotels');
@@ -32,49 +40,87 @@ const AIChatScreen = ({ route, navigation }) => {
   };
 
   const checkIfDatabaseQuestion = (text) => {
-    // Từ khóa dành cho KHÁCH HÀNG
-    const kws = ['giá','ngân sách','rẻ','dưới','trên','gần','trung tâm','biển','tiện ích','hồ bơi','bữa sáng','đậu xe','wifi','gia đình','cặp đôi','đánh giá','rating','xếp hạng','khuyến mãi','ưu đãi','phòng trống','còn phòng','ngày','đêm','check in','check-out','hủy miễn phí','miễn phí','chính sách','so sánh','recommend','đề xuất','gợi ý','homestay','hotel','khách sạn'];
+    const kws = [
+      'giá','ngân sách','rẻ','dưới','trên','gần','trung tâm','biển',
+      'tiện ích','hồ bơi','bữa sáng','đậu xe','wifi','gia đình',
+      'cặp đôi','đánh giá','rating','xếp hạng','khuyến mãi','ưu đãi',
+      'phòng trống','còn phòng','check in','check-out','hủy miễn phí',
+      'so sánh','gợi ý','recommend','homestay','hotel','khách sạn'
+    ];
     const t = text.toLowerCase();
     return kws.some(k => t.includes(k));
   };
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
-    const userMsg = { id: (Date.now()+1).toString(), text: input, isBot: false };
+
+    const userMsg = { id: Date.now().toString(), text: input, isBot: false };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);
+
     try {
       const isDB = checkIfDatabaseQuestion(userMsg.text);
-      let prompt = '';
+      let systemPrompt = '';
+
       if (isDB) {
         const ctx = await fetchContextData();
-        prompt = `Bạn là trợ lý du lịch hỗ trợ KHÁCH HÀNG. Thành phố: ${selectedCity || 'không xác định'}.\nDữ liệu khách sạn (có trường mainImage là ảnh):\n${JSON.stringify(ctx, null, 2)}\n\nHãy trả lời THEO ĐỊNH DẠNG JSON, không thêm chữ nào ngoài JSON:\n{\n  "type": "suggestions",\n  "items": [\n    {"name": string, "pricePerNight": string|number, "rating": number|null, "area": string|null, "amenities": string[], "imageUrl": string|null}\n  ],\n  "askMore": string|null\n}\n\nYêu cầu: chọn 3-5 khách sạn phù hợp; imageUrl lấy từ mainImage; area suy từ address; nếu thiếu thông tin (ngân sách, ngày, số người...), để items=[] và điền askMore.\n\nCâu hỏi khách: ${userMsg.text}`;
+        systemPrompt = `
+Bạn là AI tư vấn du lịch cho KHÁCH HÀNG.
+Thành phố: ${selectedCity || 'không xác định'}.
+
+Dữ liệu khách sạn (có trường mainImage là ảnh):
+${JSON.stringify(ctx, null, 2)}
+
+Trả lời theo định dạng JSON (KHÔNG thêm chữ nào ngoài JSON):
+{
+  "type": "suggestions",
+  "items": [
+    {"name": string, "pricePerNight": string|number, "rating": number|null, "area": string|null, "amenities": string[], "imageUrl": string|null}
+  ],
+  "askMore": string|null
+}
+
+Yêu cầu: chọn 3–5 khách sạn phù hợp; imageUrl lấy từ mainImage; nếu thiếu thông tin → items=[] và điền askMore.
+Câu hỏi khách: ${userMsg.text}
+`;
       } else {
-        prompt = `Bạn là trợ lý trò chuyện thân thiện dành cho KHÁCH HÀNG du lịch. Hãy trả lời tự nhiên, ngắn gọn, tích cực. Tin nhắn: ${userMsg.text}`;
+        systemPrompt = `
+Bạn là trợ lý du lịch thân thiện. 
+Hãy trả lời tự nhiên, ngắn gọn, tích cực.
+Tin nhắn: ${userMsg.text}
+`;
       }
-      if (!genAI.apiKey) throw new Error('Thiếu GEMINI_API_KEY');
-      // gọi API với retry 1 lần khi lỗi tạm thời
-      const callOnce = async () => {
-        const r = await model.generateContent(prompt);
-        return r.response.text();
-      };
-      let text;
-      try {
-        text = await callOnce();
-      } catch (err) {
-        // retry một lần
-        text = await callOnce();
-      }
-      // Thử parse JSON để hiển thị card đẹp
+
+
+      const result = await ai.models.generateContent({
+  model: 'gemini-2.0-flash',
+  contents: [
+    {
+      role: 'user',
+      parts: [{ text: systemPrompt }]
+    }
+  ],
+});
+
+
+let text = '(Không có phản hồi)';
+if (result?.response && typeof result.response.text === 'function') {
+  text = await result.response.text();
+} else if (result?.candidates?.[0]?.content?.parts?.[0]?.text) {
+  text = result.candidates[0].content.parts[0].text;
+}
+
+
+      // 🧠 Parse JSON nếu có
       let added = false;
       try {
         const cleaned = text
-          .replace(/^```json[\s\S]*?\n|^```/i, '')
-          .replace(/```\s*$/i, '')
+          .replace(/^```json\s*/i, '')
+          .replace(/```$/i, '')
           .trim();
         const json = JSON.parse(cleaned);
-        if (json && json.type === 'suggestions' && Array.isArray(json.items)) {
+        if (json?.type === 'suggestions' && Array.isArray(json.items)) {
           const cards = json.items.map(it => ({
             name: it.name,
             pricePerNight: it.pricePerNight,
@@ -83,23 +129,35 @@ const AIChatScreen = ({ route, navigation }) => {
             amenities: it.amenities || [],
             imageUrl: it.imageUrl,
           }));
-          setMessages(prev => [...prev, { id: (Date.now()+2).toString(), isBot: true, cards }]);
+          setMessages(prev => [
+            ...prev,
+            { id: Date.now().toString(), isBot: true, cards },
+          ]);
           if (json.askMore) {
-            setMessages(prev => [...prev, { id: (Date.now()+3).toString(), isBot: true, text: json.askMore }]);
+            setMessages(prev => [
+              ...prev,
+              { id: Date.now().toString(), isBot: true, text: json.askMore },
+            ]);
           }
           added = true;
         }
-      } catch (_e) {
-        // bỏ qua, fallback text
+      } catch (e) {
+        console.log('Không parse được JSON:', e);
       }
+
       if (!added) {
-        const botMsg = { id: (Date.now()+4).toString(), text, isBot: true };
-        setMessages(prev => [...prev, botMsg]);
+        setMessages(prev => [
+          ...prev,
+          { id: Date.now().toString(), text, isBot: true },
+        ]);
       }
-    } catch (e) {
-      const shortMsg = (e && (e.message || `${e}`)).toString().slice(0, 140);
-      const botMsg = { id: (Date.now()+3).toString(), text: `Xin lỗi, có lỗi xảy ra. (${shortMsg})`, isBot: true };
-      setMessages(prev => [...prev, botMsg]);
+
+    } catch (err) {
+      console.error('Lỗi gọi Gemini:', err);
+      setMessages(prev => [
+        ...prev,
+        { id: Date.now().toString(), text: '❌ Lỗi kết nối tới AI.', isBot: true },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -108,33 +166,27 @@ const AIChatScreen = ({ route, navigation }) => {
   const renderItem = ({ item }) => {
     if (item.cards) {
       return (
-        <View style={[styles.bubble, styles.bot]}>
-          <Text style={[styles.text, { marginBottom: 6 }]}>Gợi ý cho bạn:</Text>
-          {item.cards.map((card) => (
+        <View style={[aiChatScreenStyles.bubble, aiChatScreenStyles.bot]}>
+          <Text style={[aiChatScreenStyles.text, { marginBottom: 6 }]}>Gợi ý cho bạn:</Text>
+          {item.cards.map(card => (
             <TouchableOpacity
-              key={`${card.name}`}
-              style={styles.card}
+              key={card.name}
+              style={aiChatScreenStyles.card}
               onPress={() => {
-                // tìm khách sạn tương ứng trong dữ liệu theo tên hoặc ảnh
-                const match = hotelsLookup.find(h => h.hotelName === card.name) ||
-                              hotelsLookup.find(h => h.mainImage === card.imageUrl);
-                if (match) {
-                  navigation.navigate('Order', { place: match });
-                }
+                const match = hotelsLookup.find(h => h.hotelName === card.name);
+                if (match) navigation.navigate('Order', { place: match });
               }}
             >
-              {!!card.imageUrl && (
-                <Image source={{ uri: card.imageUrl }} style={styles.cardImage} />
-              )}
-              <View style={styles.cardBody}>
-                <Text style={styles.cardTitle}>{card.name}</Text>
-                <Text style={styles.cardMeta}>
+              {card.imageUrl && <Image source={{ uri: card.imageUrl }} style={aiChatScreenStyles.cardImage} />}
+              <View style={aiChatScreenStyles.cardBody}>
+                <Text style={aiChatScreenStyles.cardTitle}>{card.name}</Text>
+                <Text style={aiChatScreenStyles.cardMeta}>
                   {card.pricePerNight ? `${card.pricePerNight} / đêm` : ''}
-                  {card.rating ? `  •  ${card.rating}★` : ''}
+                  {card.rating ? ` • ${card.rating}★` : ''}
                 </Text>
-                {!!card.area && <Text style={styles.cardMeta}>{card.area}</Text>}
-                {!!(card.amenities && card.amenities.length) && (
-                  <Text numberOfLines={2} style={styles.cardAmenities}>{card.amenities.join(', ')}</Text>
+                {card.area && <Text style={aiChatScreenStyles.cardMeta}>{card.area}</Text>}
+                {!!card.amenities?.length && (
+                  <Text numberOfLines={2} style={aiChatScreenStyles.cardAmenities}>{card.amenities.join(', ')}</Text>
                 )}
               </View>
             </TouchableOpacity>
@@ -142,58 +194,53 @@ const AIChatScreen = ({ route, navigation }) => {
         </View>
       );
     }
+
     return (
-      <View style={[styles.bubble, item.isBot ? styles.bot : styles.user]}>
-        <Text style={styles.text}>{item.text}</Text>
+      <View style={[aiChatScreenStyles.bubble, item.isBot ? aiChatScreenStyles.bot : aiChatScreenStyles.user]}>
+        <Text style={[aiChatScreenStyles.text, item.isBot ? {} : { color: '#fff' }]}>{item.text}</Text>
       </View>
     );
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <FlatList
-        ref={messagesRef}
-        contentContainerStyle={styles.list}
-        data={messages}
-        renderItem={renderItem}
-        keyExtractor={(it) => it.id}
-      />
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.input}
-          value={input}
-          onChangeText={setInput}
-          placeholder="Nói chuyện với AI hoặc hỏi về khách sạn..."
-          multiline
-        />
-        <TouchableOpacity style={[styles.send, loading && styles.sendDisabled]} onPress={sendMessage} disabled={loading}>
-          <Text style={styles.sendText}>{loading ? '...' : 'Gửi'}</Text>
+    <View style={aiChatScreenStyles.page}>
+      {/* Custom Header */}
+      <View style={aiChatScreenStyles.header}>
+        <TouchableOpacity 
+          style={aiChatScreenStyles.backButton} 
+          onPress={() => navigation.navigate('CityDetailsScreen', { city })}
+        >
+          <Text style={aiChatScreenStyles.backButtonText}>← Quay lại</Text>
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+
+      <KeyboardAvoidingView style={aiChatScreenStyles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <FlatList
+          ref={messagesRef}
+          contentContainerStyle={aiChatScreenStyles.list}
+          data={messages}
+          renderItem={renderItem}
+          keyExtractor={it => it.id}
+        />
+        <View style={aiChatScreenStyles.inputRow}>
+          <TextInput
+            style={aiChatScreenStyles.input}
+            value={input}
+            onChangeText={setInput}
+            placeholder="Nói chuyện với AI hoặc hỏi về khách sạn..."
+            multiline
+          />
+          <TouchableOpacity
+            style={[aiChatScreenStyles.send, loading && aiChatScreenStyles.sendDisabled]}
+            onPress={sendMessage}
+            disabled={loading}
+          >
+            <Text style={aiChatScreenStyles.sendText}>{loading ? '...' : 'Gửi'}</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f7fa' },
-  list: { padding: 12 },
-  bubble: { padding: 12, borderRadius: 14, marginBottom: 10, maxWidth: '85%' },
-  bot: { backgroundColor: '#f8f9fa', borderWidth: 1, borderColor: '#e9ecef', alignSelf: 'flex-start' },
-  user: { backgroundColor: '#007bff', alignSelf: 'flex-end' },
-  text: { color: '#222', lineHeight: 20 },
-  card: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#eee', borderRadius: 10, overflow: 'hidden', marginBottom: 10 },
-  cardImage: { width: 260, height: 140, backgroundColor: '#ddd' },
-  cardBody: { padding: 10, width: 260 },
-  cardTitle: { fontWeight: '700', color: '#222', marginBottom: 4 },
-  cardMeta: { color: '#666', marginBottom: 4 },
-  cardAmenities: { color: '#007AFF' },
-  inputRow: { flexDirection: 'row', padding: 10, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#eee' },
-  input: { flex: 1, padding: 10, borderWidth: 1, borderColor: '#ddd', borderRadius: 10, backgroundColor: '#fff', maxHeight: 120 },
-  send: { marginLeft: 8, backgroundColor: '#007bff', paddingHorizontal: 16, justifyContent: 'center', borderRadius: 10 },
-  sendDisabled: { backgroundColor: '#9bbcf7' },
-  sendText: { color: '#fff', fontWeight: '600' },
-});
-
 export default AIChatScreen;
-
-

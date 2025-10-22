@@ -1,6 +1,6 @@
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, firestore } from '../../firebase';
+import { auth, firestore } from '../firebase';
 
 export const validateLoginForm = (email, password) => {
     const errors = {};

@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    ScrollView,
-    TextInput,
-    Alert,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
+import { paymentScreenStyles } from '../styles/PaymentScreenStyles';
 import { firestore } from '../firebase';
 import { addDoc, collection, doc, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
@@ -84,123 +77,58 @@ const PaymentScreen = ({ route, navigation }) => {
     };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-            <Text style={styles.header}>Chi tiết thanh toán</Text>
-
-            <View style={styles.detailsBox}>
-                <Text style={styles.detailsText}>Khách sạn: {place.hotelName}</Text>
-                <Text style={styles.detailsText}>Loại phòng: {selectedRoom.roomType}</Text>
-                <Text style={styles.detailsText}>Số lượng phòng: {roomCount}</Text>
-                <Text style={styles.detailsText}>
-                    Ngày nhận phòng: {formatDateToVietnamese(checkInDate)}
-                </Text>
-                <Text style={styles.detailsText}>
-                    Ngày trả phòng: {formatDateToVietnamese(checkOutDate)}
-                </Text>
-                <Text style={styles.detailsText}>
-                    Tổng tiền: {totalPrice.toLocaleString()} VND
-                </Text>
+        <View style={paymentScreenStyles.page}>
+            {/* Custom Header */}
+            <View style={paymentScreenStyles.header}>
+                <TouchableOpacity style={paymentScreenStyles.backButton} onPress={() => navigation.goBack()}>
+                    <Text style={paymentScreenStyles.backButtonText}>← Quay lại</Text>
+                </TouchableOpacity>
             </View>
 
-            <Text style={styles.notice}>
-                Vui lòng nhận phòng trước 12:00 trưa ngày nhận phòng và trả phòng trước 12:00
-                trưa ngày trả phòng.
-            </Text>
+            <ScrollView contentContainerStyle={paymentScreenStyles.container} keyboardShouldPersistTaps="handled">
+                <View style={paymentScreenStyles.card}>
+                    <Text style={paymentScreenStyles.title}>Chi tiết thanh toán</Text>
 
-            <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Họ và tên:</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Nhập họ và tên"
-                    value={fullName}
-                    onChangeText={setFullName}
-                />
-            </View>
+                    <View style={paymentScreenStyles.detailsBox}>
+                        <Text style={paymentScreenStyles.detailsText}>Khách sạn: {place.hotelName}</Text>
+                        <Text style={paymentScreenStyles.detailsText}>Loại phòng: {selectedRoom.roomType}</Text>
+                        <Text style={paymentScreenStyles.detailsText}>Số lượng phòng: {roomCount}</Text>
+                        <Text style={paymentScreenStyles.detailsText}>Ngày nhận phòng: {formatDateToVietnamese(checkInDate)}</Text>
+                        <Text style={paymentScreenStyles.detailsText}>Ngày trả phòng: {formatDateToVietnamese(checkOutDate)}</Text>
+                        <Text style={paymentScreenStyles.detailsText}>Tổng tiền: {totalPrice.toLocaleString()} VND</Text>
+                    </View>
 
-            <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Số điện thoại:</Text>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Nhập số điện thoại"
-                    keyboardType="phone-pad"
-                    value={phoneNumber}
-                    onChangeText={setPhoneNumber}
-                />
-            </View>
+                    <Text style={paymentScreenStyles.notice}>
+                        Vui lòng nhận phòng trước 12:00 trưa ngày nhận phòng và trả phòng trước 12:00 trưa ngày trả phòng.
+                    </Text>
 
-            <TouchableOpacity style={styles.paymentButton} onPress={handlePayment}>
-                <Text style={styles.paymentButtonText}>Thanh toán khi nhận phòng</Text>
-            </TouchableOpacity>
-        </ScrollView>
+                    <View style={paymentScreenStyles.inputGroup}>
+                        <Text style={paymentScreenStyles.inputLabel}>Họ và tên:</Text>
+                        <TextInput
+                            style={paymentScreenStyles.input}
+                            placeholder="Nhập họ và tên"
+                            value={fullName}
+                            onChangeText={setFullName}
+                        />
+                    </View>
+
+                    <View style={paymentScreenStyles.inputGroup}>
+                        <Text style={paymentScreenStyles.inputLabel}>Số điện thoại:</Text>
+                        <TextInput
+                            style={paymentScreenStyles.input}
+                            placeholder="Nhập số điện thoại"
+                            keyboardType="phone-pad"
+                            value={phoneNumber}
+                            onChangeText={setPhoneNumber}
+                        />
+                    </View>
+
+                    <TouchableOpacity onPress={handlePayment} style={paymentScreenStyles.primaryBtn}>
+                        <Text style={paymentScreenStyles.primaryBtnText}>Thanh toán khi nhận phòng</Text>
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
+        </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-    },
-    content: {
-        padding: 20,
-    },
-    header: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        color: '#007AFF',
-        marginBottom: 20,
-    },
-    detailsBox: {
-        padding: 20,
-        backgroundColor: '#fff',
-        borderRadius: 10,
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    detailsText: {
-        fontSize: 16,
-        marginBottom: 10,
-        color: '#333',
-    },
-    notice: {
-        fontSize: 14,
-        color: '#888',
-        textAlign: 'center',
-        marginBottom: 20,
-    },
-    inputContainer: {
-        marginBottom: 20,
-    },
-    inputLabel: {
-        fontSize: 16,
-        marginBottom: 5,
-        color: '#333',
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 8,
-        padding: 10,
-        fontSize: 16,
-        backgroundColor: '#fff',
-        elevation: 1,
-    },
-    paymentButton: {
-        backgroundColor: '#007AFF',
-        paddingVertical: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-        elevation: 3,
-    },
-    paymentButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-});
-
 export default PaymentScreen;

@@ -1,4 +1,4 @@
-import { firestore, auth } from '../../firebase';
+import { firestore, auth } from '../firebase';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 
 export const fetchPlaces = async (city) => {

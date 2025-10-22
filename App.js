@@ -51,16 +51,16 @@ export default function App() {
         />
         <Stack.Screen name="CityDetailsScreen" component={CityDetailsScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Order" component={OrderScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Payment" component={PaymentScreen} options={{ title: 'Thanh toán' }} />
+        <Stack.Screen name="Payment" component={PaymentScreen} options={{ headerShown: false }} />
         <Stack.Screen
           name="BookingManagementScreen"
           component={BookingManagementScreen}
-          options={{ title: 'Quản lý phòng đã đặt' }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="AIChat"
           component={AIChatScreen}
-          options={{ title: 'AI Assistant' }}
+          options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -2,17 +2,19 @@ import { StyleSheet } from 'react-native';
 
 export const orderScreenStyles = StyleSheet.create({
     page: { flex: 1, backgroundColor: '#ffffff' },
-    container: { flexGrow: 1, padding: 20 },
-    // Back button styles
+    container: { flexGrow: 1, padding: 5 },
+    // Header styles
+    header: {
+        backgroundColor: '#ffffff',
+        paddingTop: 50,
+        paddingBottom: 12,
+        paddingHorizontal: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e5e7eb',
+    },
     backButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        paddingTop: 50,
-        backgroundColor: '#ffffff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#e5e7eb',
     },
     backButtonText: {
         fontSize: 16,

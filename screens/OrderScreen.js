@@ -46,10 +46,12 @@ const OrderScreen = ({ route, navigation }) => {
 
     return (
         <View style={orderScreenStyles.page}>
-            {/* Back Button */}
-            <TouchableOpacity style={orderScreenStyles.backButton} onPress={() => navigation.goBack()}>
-                <Text style={orderScreenStyles.backButtonText}>← Quay lại</Text>
-            </TouchableOpacity>
+            {/* Custom Header */}
+            <View style={orderScreenStyles.header}>
+                <TouchableOpacity style={orderScreenStyles.backButton} onPress={() => navigation.goBack()}>
+                    <Text style={orderScreenStyles.backButtonText}>← Quay lại</Text>
+                </TouchableOpacity>
+            </View>
 
             <ScrollView contentContainerStyle={orderScreenStyles.container} keyboardShouldPersistTaps="handled">
                 <View style={orderScreenStyles.card}>

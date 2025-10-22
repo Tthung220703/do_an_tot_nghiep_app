@@ -3,15 +3,17 @@ import {
     View,
     Text,
     FlatList,
-    StyleSheet,
     TouchableOpacity,
     Alert,
+    ScrollView,
 } from 'react-native';
 import { firestore } from '../firebase';
 import { getAuth } from 'firebase/auth';
 import { collection, query, where, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
+import { bookingManagementScreenStyles } from '../styles/BookingManagementScreenStyles';
 
-const BookingManagementScreen = () => {
+const BookingManagementScreen = ({ navigation, route }) => {
+    const { city } = route.params || { city: 'Hồ Chí Minh' }; // fallback nếu không có params
     const [bookings, setBookings] = useState([]);
     const auth = getAuth();
     const currentUser = auth.currentUser;
@@ -58,129 +60,68 @@ const BookingManagementScreen = () => {
         );
 
         return (
-            <View style={styles.bookingItem}>
-                <View style={styles.bookingHeader}>
-                    <Text style={styles.hotelName}>{item.hotelName}</Text>
+            <View style={bookingManagementScreenStyles.bookingItem}>
+                <View style={bookingManagementScreenStyles.bookingHeader}>
+                    <Text style={bookingManagementScreenStyles.hotelName}>{item.hotelName}</Text>
                     {item.status === 'Đang chờ duyệt' && (
                         <TouchableOpacity
-                            style={styles.cancelButton}
+                            style={bookingManagementScreenStyles.cancelButton}
                             onPress={() => handleCancelBooking(item.id, item.status)}
                         >
-                            <Text style={styles.cancelButtonText}>Hủy</Text>
+                            <Text style={bookingManagementScreenStyles.cancelButtonText}>Hủy</Text>
                         </TouchableOpacity>
                     )}
                 </View>
-                <Text style={styles.bookingDetail}>
-                    Loại phòng: <Text style={styles.boldText}>{item.roomType}</Text>
+                <Text style={bookingManagementScreenStyles.bookingDetail}>
+                    Loại phòng: <Text style={bookingManagementScreenStyles.boldText}>{item.roomType}</Text>
                 </Text>
-                <Text style={styles.bookingDetail}>
-                    Số lượng phòng: <Text style={styles.boldText}>{item.roomCount}</Text>
+                <Text style={bookingManagementScreenStyles.bookingDetail}>
+                    Số lượng phòng: <Text style={bookingManagementScreenStyles.boldText}>{item.roomCount}</Text>
                 </Text>
-                <Text style={styles.bookingDetail}>
-                    Giá: <Text style={styles.boldText}>{item.totalPrice.toLocaleString()} VND</Text>
+                <Text style={bookingManagementScreenStyles.bookingDetail}>
+                    Giá: <Text style={bookingManagementScreenStyles.boldText}>{item.totalPrice.toLocaleString()} VND</Text>
                 </Text>
-                <Text style={styles.bookingDetail}>
-                    Số ngày ở: <Text style={styles.boldText}>{numberOfDays} ngày</Text>
+                <Text style={bookingManagementScreenStyles.bookingDetail}>
+                    Số ngày ở: <Text style={bookingManagementScreenStyles.boldText}>{numberOfDays} ngày</Text>
                 </Text>
-                <Text style={styles.bookingDetail}>
-                    Trạng thái: <Text style={styles.statusText}>{item.status}</Text>
+                <Text style={bookingManagementScreenStyles.bookingDetail}>
+                    Trạng thái: <Text style={bookingManagementScreenStyles.statusText}>{item.status}</Text>
                 </Text>
             </View>
         );
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.header}>Quản lý phòng đã đặt</Text>
-            <TouchableOpacity style={styles.aiButton} onPress={() => {
-                // navigation is available via props in stack screens
-                // but this component defined without props; use a workaround by requiring navigation
-            }} />
-            {bookings.length === 0 ? (
-                <Text style={styles.noBookingText}>Bạn chưa đặt phòng nào.</Text>
-            ) : (
-                <FlatList
-                    data={bookings}
-                    renderItem={renderBooking}
-                    keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.listContainer}
-                />
-            )}
+        <View style={bookingManagementScreenStyles.page}>
+            {/* Custom Header */}
+            <View style={bookingManagementScreenStyles.header}>
+                <TouchableOpacity 
+                    style={bookingManagementScreenStyles.backButton} 
+                    onPress={() => navigation.navigate('CityDetailsScreen', { city })}
+                >
+                    <Text style={bookingManagementScreenStyles.backButtonText}>← Quay lại</Text>
+                </TouchableOpacity>
+            </View>
+
+            <ScrollView contentContainerStyle={bookingManagementScreenStyles.container} keyboardShouldPersistTaps="handled">
+                <View style={bookingManagementScreenStyles.card}>
+                    <Text style={bookingManagementScreenStyles.title}>Quản lý phòng đã đặt</Text>
+                    
+                    {bookings.length === 0 ? (
+                        <Text style={bookingManagementScreenStyles.noBookingText}>Bạn chưa đặt phòng nào.</Text>
+                    ) : (
+                        <FlatList
+                            data={bookings}
+                            renderItem={renderBooking}
+                            keyExtractor={(item) => item.id}
+                            contentContainerStyle={bookingManagementScreenStyles.listContainer}
+                            scrollEnabled={false}
+                        />
+                    )}
+                </View>
+            </ScrollView>
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f9f9f9',
-        padding: 16,
-    },
-    header: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginVertical: 20,
-        color: '#007AFF',
-    },
-    listContainer: {
-        paddingBottom: 16,
-    },
-    bookingItem: {
-        backgroundColor: '#fff',
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    bookingHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    hotelName: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    cancelButton: {
-        backgroundColor: '#FF3B30',
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 8,
-    },
-    cancelButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 14,
-    },
-    bookingDetail: {
-        fontSize: 16,
-        color: '#555',
-        marginBottom: 4,
-    },
-    boldText: {
-        fontWeight: 'bold',
-        color: '#000',
-    },
-    statusText: {
-        fontWeight: 'bold',
-        color: '#007AFF',
-    },
-    noBookingText: {
-        fontSize: 18,
-        textAlign: 'center',
-        color: '#888',
-        marginTop: 20,
-    },
-    aiButton: {
-        display: 'none'
-    }
-});
 
 export default BookingManagementScreen;

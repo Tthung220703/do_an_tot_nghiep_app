@@ -238,7 +238,7 @@ const CityDetailsScreen = ({ route, navigation }) => {
                             <View style={cityDetailsStyles.modalActions}>
                                 <TouchableOpacity
                                     style={cityDetailsStyles.actionButton}
-                                    onPress={() => navigation.navigate('BookingManagementScreen')}
+                                    onPress={() => navigation.navigate('BookingManagementScreen', { city })}
                                 >
                                     <Icon name="shopping-cart" size={20} color="#007AFF" />
                                     <Text style={cityDetailsStyles.actionButtonText}>Đơn đặt phòng</Text>
